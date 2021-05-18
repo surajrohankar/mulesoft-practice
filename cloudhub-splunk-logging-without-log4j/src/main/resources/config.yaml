@@ -1,0 +1,18 @@
+#Anypoint Platform
+anypoint:
+  username: ""
+  password: ""
+  envId: ""
+  appName: ""
+  instanceId: ""
+
+#Splunk
+#For connector configuration  
+splunk:
+  baseUri: "http://localhost:8089"
+  username: ""
+  password: ""
+  
+#For Splunk REST call
+  guid: ""
+  token: ""

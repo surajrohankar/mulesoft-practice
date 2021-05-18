@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration status="INFO" name="cloudhub"
+	packages="com.splunk.logging,org.apache.logging.log4j">
+
+	<!--These are some of the loggers you can enable. There are several more 
+		you can find in the documentation. Besides this log4j configuration, you 
+		can also use Java VM environment variables to enable other logs like network 
+		(-Djavax.net.debug=ssl or all) and Garbage Collector (-XX:+PrintGC). These 
+		will be append to the console, so you will see them in the mule_ee.log file. -->
+
+	<Appenders>
+		<Log4J2CloudhubLogAppender name="CLOUDHUB"
+			addressProvider="com.mulesoft.ch.logging.DefaultAggregatorAddressProvider"
+			applicationContext="com.mulesoft.ch.logging.DefaultApplicationContext"
+			appendRetryIntervalMs="${sys:logging.appendRetryInterval}"
+			appendMaxAttempts="${sys:logging.appendMaxAttempts}"
+			batchSendIntervalMs="${sys:logging.batchSendInterval}"
+			batchMaxRecords="${sys:logging.batchMaxRecords}"
+			memBufferMaxSize="${sys:logging.memBufferMaxSize}"
+			journalMaxWriteBatchSize="${sys:logging.journalMaxBatchSize}"
+			journalMaxFileSize="${sys:logging.journalMaxFileSize}"
+			clientMaxPacketSize="${sys:logging.clientMaxPacketSize}"
+			clientConnectTimeoutMs="${sys:logging.clientConnectTimeout}"
+			clientSocketTimeoutMs="${sys:logging.clientSocketTimeout}"
+			serverAddressPollIntervalMs="${sys:logging.serverAddressPollInterval}"
+			serverHeartbeatSendIntervalMs="${sys:logging.serverHeartbeatSendIntervalMs}"
+			statisticsPrintIntervalMs="${sys:logging.statisticsPrintIntervalMs}">
+			<PatternLayout
+				pattern="[%d{MM-dd HH:mm:ss}] %-5p %c{1} [%t]: %m%n" />
+		</Log4J2CloudhubLogAppender>
+		<SplunkHttp name="SPLUNK-CLOUD"
+			url="http://localhost:8088/"
+			token="88fa36b6-58e8-4b17-bb50-2823df24xxxxx" index="main"
+			disableCertificateValidation="true">
+			<PatternLayout
+				pattern="[%d{MM-dd HH:mm:ss}] %-5p %c{1} [%t]: %m%n" />
+		</SplunkHttp>
+		<Http name="Splunk"
+			url="http://localhost:8088/services/collector/raw">
+
+			<Property name="Authorization"
+				value="88fa36b6-58e8-4b17-bb50-2823df24xxxxx" />
+			<PatternLayout
+				pattern="%-5p %d [%t] %X{correlationId}%c: %m%n" />
+		</Http>
+
+	</Appenders>
+	<Loggers>
+
+		<AsyncLogger
+			name="org.mule.runtime.core.internal.processor.LoggerMessageProcessor"
+			level="INFO" />
+		<AsyncLogger name="com.mulesoft.agent" level="INFO" />
+		<AsyncRoot level="INFO">
+			<AppenderRef ref="SPLUNK-CLOUD" />
+			<AppenderRef ref="CLOUDHUB" />
+		</AsyncRoot>
+		<AsyncLogger name="com.gigaspaces" level="ERROR" />
+		<AsyncLogger name="com.j_spaces" level="ERROR" />
+		<AsyncLogger name="com.sun.jini" level="ERROR" />
+		<AsyncLogger name="net.jini" level="ERROR" />
+		<AsyncLogger name="org.apache" level="WARN" />
+		<AsyncLogger name="org.apache.cxf" level="WARN" />
+		<AsyncLogger name="org.springframework.beans.factory"
+			level="WARN" />
+		<AsyncLogger name="org.mule" level="INFO" />
+		<AsyncLogger name="com.mulesoft" level="INFO" />
+		<AsyncLogger name="org.jetel" level="WARN" />
+		<AsyncLogger name="Tracking" level="WARN" />
+		<AsyncLogger name="org.mule" level="INFO" />
+		<AsyncLogger name="com.mulesoft" level="INFO" />
+		<AsyncLogger name="org.mule.extensions.jms" level="INFO" />
+		<AsyncLogger
+			name="org.mule.service.http.impl.service.HttpMessageLogger"
+			level="INFO" />
+		<AsyncLogger name="org.mule.extension.salesforce"
+			level="INFO" />
+		<AsyncLogger name="org.mule.extension.ftp" level="INFO" />
+		<AsyncLogger name="org.mule.extension.sftp" level="INFO" />
+		<AsyncLogger name="com.mulesoft.extension.ftps"
+			level="INFO" />
+		<AsyncLogger name="org.mule.modules.sap" level="INFO" />
+		<AsyncLogger name="com.mulesoft.extension.mq" level="INFO" />
+		<AsyncLogger name="com.mulesoft.mq" level="INFO" />
+		<AsyncLogger name="org.mule.extension.db" level="INFO" />
+		<AsyncLogger name="httpclient.wire" level="DEBUG" />
+		<AsyncLogger name="org.mule.transport.email" level="DEBUG" />
+	</Loggers>
+
+</Configuration>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:splunk="http://www.mulesoft.org/schema/mule/splunk" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/splunk http://www.mulesoft.org/schema/mule/splunk/current/mule-splunk.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1953b832-f570-4b7e-b2c8-5dd014c5c719" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="8d94919f-48c5-4503-ac66-cb825abdf56a" entryTtl="1" entryTtlUnit="DAYS" expirationIntervalUnit="DAYS" config-ref="ObjectStore_Config"/>
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="c5101996-ed82-4c39-85d0-88f0dcb0b003" >
+		<os:connection >
+			<reconnection >
+				<reconnect />
+			</reconnection>
+		</os:connection>
+	</os:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="812edeaa-bbb6-4079-b71b-cf4d2443553f" file="config.yaml" />
+</mule>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:splunk="http://www.mulesoft.org/schema/mule/splunk"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:cloudhub-public-api="http://www.mulesoft.org/schema/mule/cloudhub-public-api" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/cloudhub-public-api http://www.mulesoft.org/schema/mule/cloudhub-public-api/current/mule-cloudhub-public-api.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/splunk http://www.mulesoft.org/schema/mule/splunk/current/mule-splunk.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<flow name="mule-cloudhub-splunk-logging-without-log4jFlow" doc:id="3b1364e5-f3f5-4736-a4e8-a196da30ddfe" >
+		<scheduler doc:name="Scheduler" doc:id="a00cfcd8-6a2f-4e33-990f-251d158b5e72" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="55" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<http:request method="POST" doc:name="Retrieve Access Token" doc:id="0bd2cb59-819b-4021-be79-bd943791b629" url="https://anypoint.mulesoft.com/accounts/login">
+			<http:body><![CDATA[#[output application/x-www-form-urlencoded 
+---
+{
+	"username": p('anypoint.username'),
+	"password": p('anypoint.password')
+}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/x-www-form-urlencoded"
+}]]]></http:headers>
+		</http:request>
+		<os:store doc:name="Store Access Token" doc:id="41a9eeef-380e-4a32-a653-03125d60cbec" key="token" objectStore="Object_store"/>
+	</flow>
+	<flow name="pushing-cloudhub-logs-using-rest-call" doc:id="98762141-2d93-4761-bde5-79109a21d84a" >
+		<scheduler doc:name="Scheduler" doc:id="68d5ef74-64b1-4055-858c-6efc71f6ff8d" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="MINUTES" startDelay="1"/>
+			</scheduling-strategy>
+		</scheduler>
+		<os:retrieve doc:name="Retrieve Access Token" doc:id="6ed3b60b-3642-4a75-b531-f210ab77dda0" key="token" target="accss_token" objectStore="Object_store"/>
+		<http:request method="GET" doc:name="GET Cloudhub Logs" doc:id="f2ee1c2c-693f-4289-8c3c-bc7902ecd981" url="https://anypoint.mulesoft.com/cloudhub/api/v2/applications/{app_name}/instances/{instance_id}/logs">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"X-ANYPNT-ENV-ID" : p('anypoint.envId'),
+	"Authorization" : "Bearer " ++ vars.accss_token.access_token
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"app_name" : p('anypoint.appName'),
+	"instance_id" : p('anypoint.instanceId')
+}]]]></http:uri-params>
+		</http:request>
+		<http:request method="POST" doc:name="services/collector/raw" doc:id="8142d914-a959-4da4-8187-220aa687a2a7" url="http://localhost:8088/services/collector/raw">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Splunk " ++ p('splunk.token')
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"channel" : p('splunk.guid')
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="LOG Payload" doc:id="6e3327b2-7c02-431a-aa64-7aeead224859" message="#[payload]"/>
+	</flow>
+</mule>

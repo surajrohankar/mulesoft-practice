@@ -1,0 +1,18 @@
+#Anypoint Platform
+anypointplatform:
+  username: ""
+  password: ""
+  org_id: ""
+  env_id: ""
+  
+#Anypoint MQ
+anypointmq:
+  region_id: ""
+  queue: ""
+  
+#Send Email
+email:
+  username: ""
+  password: ""
+  from: ""
+  to: ""

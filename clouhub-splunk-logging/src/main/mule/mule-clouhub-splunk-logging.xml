@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0325b434-30ae-4ccb-a977-00cfa700d971" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="mule-clouhub-splunk-loggingFlow" doc:id="bdbb8cbe-ef2f-498d-a0a4-f226ec20368e" >
+		<http:listener doc:name="Listener" doc:id="92fe60e4-53df-473a-be86-d3720be1bdcb" config-ref="HTTP_Listener_config" path="/test"/>
+		<set-payload value='#["Hello World!"]' doc:name="Set Payload" doc:id="9eff836a-73c6-44d2-b9e1-bbef542da609" />
+		<logger level="INFO" doc:name="Logger" doc:id="0f99c526-d4b0-4a96-ac00-c116b159f5bf" message="#[payload]"/>
+	</flow>
+</mule>

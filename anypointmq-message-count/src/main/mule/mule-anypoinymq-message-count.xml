@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="fc7be6fa-c12d-4d39-94f5-e75cfb5db2bf">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+	<os:config name="ObjectStore_Config"
+		doc:name="ObjectStore Config"
+		doc:id="37ff6356-1062-44a6-829f-4656c57b2e6e">
+		<os:connection>
+			<reconnection>
+				<reconnect />
+			</reconnection>
+		</os:connection>
+	</os:config>
+	<os:object-store name="Object_store"
+		doc:name="Object store" doc:id="2d414269-99b6-470a-9843-38c3535465ff"
+		entryTtl="1" entryTtlUnit="DAYS" expirationIntervalUnit="DAYS"
+		config-ref="ObjectStore_Config" />
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="4d0e0a12-5122-47e3-af3a-7c51f8768533" file="config.yaml" />
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="d7f95340-1ef7-4cd3-8b19-1ac8e2c12d88" >
+		<email:smtp-connection host="smtp.gmail.com" user="${email.username}" password="${email.password}" port="587">
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<flow name="generate-access-tokeFlow"
+		doc:id="2f253186-2ead-4568-b140-69c702804167" initialState="started">
+		<scheduler doc:name="Scheduling after 55 min"
+			doc:id="73a77200-eff0-40a1-9a03-9943f5011631">
+			<scheduling-strategy>
+				<fixed-frequency frequency="55" timeUnit="MINUTES" />
+			</scheduling-strategy>
+		</scheduler>
+		<http:request method="POST" doc:name="GET Access Token"
+			doc:id="79692da3-cf94-4901-9a93-52be76f04466"
+			url="https://anypoint.mulesoft.com/accounts/login">
+			<http:body><![CDATA[#[output application/json
+---
+{
+    "username": p('anypointplatform.username'),
+    "password": p('anypointplatform.password')
+}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<os:store doc:id="a00cc870-aaa3-46f8-bc53-d2111e4d9a2c"
+			key="token" doc:name="Store Access Token" />
+	</flow>
+	<flow name="message-count-and-email-triggerFlow"
+		doc:id="d1ddbf8e-a45b-4e6c-82ba-fb3b368b7250">
+		<scheduler doc:name="Scheduler"
+			doc:id="858954c3-ec7a-4a12-a5b0-09df5932534c">
+			<scheduling-strategy>
+				<fixed-frequency frequency="1" timeUnit="MINUTES"
+					startDelay="1" />
+			</scheduling-strategy>
+		</scheduler>
+		<os:retrieve doc:name="Access Token "
+			doc:id="5aac64e3-4bf8-48c1-bdaa-fff340225e75" key="token" />
+		<http:request method="GET"
+			doc:name="GET Message Count(Stats)"
+			doc:id="d8e25f85-213b-4730-a1d4-cc50980432c4"
+			url="https://anypoint.mulesoft.com/mq/stats/api/v1/organizations/{orgId}/environments/{envId}/regions/{regionId}/queues"
+			target="count">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "bearer " ++ payload.access_token
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"orgId" : p('anypointplatform.org_id'),
+	"envId" : p('anypointplatform.env_id'),
+	"regionId" : p('anypointplatform.regionId')
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"destinationIds" : p('anypointmq.queue')
+}]]]></http:query-params>
+		</http:request>
+		<choice doc:name="Check count of messages"
+			doc:id="57a57441-331d-4701-a18d-bf6f0b055087">
+			<when expression="#[vars.count.messages[0] != 0]">
+				<ee:transform doc:name="DW for Table Template" doc:id="bb29dc02-3c81-4230-a9b5-30e5051ea984">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/xml  writeDeclaration = false
+---
+{
+	table @(style: "width: 100%; border: 1px solid grey;", border: "1"): {
+		tr: {
+			th: "Queue Name",
+			th: "Queue Message",
+			th: "Inflight Messages",
+			th: "Application Name",
+			th: "Environment"
+		},
+		(vars.count map (()-> tr: {
+			td: $.destination,
+			td: $.messages,
+			td: $.inflightMessages,
+			td: "mule-anypointmq-message-count",
+			td: "Sandbox"
+		}))
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<parse-template doc:name="Email body" doc:id="1372a2eb-f5b7-4145-a2b7-aec10fa9e302" >
+					<content >&lt;html&gt;
+  &lt;head&gt;&lt;/head&gt;
+  &lt;body&gt;
+    &lt;p&gt;Hi Team,&lt;/p&gt;
+    &lt;p&gt;Please check below details regarding queue&lt;/p&gt;
+    &lt;br /&gt;
+  #[payload]
+&lt;br /&gt;&lt;br /&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</content>
+				</parse-template>
+				<email:send doc:name="Send Email" doc:id="2c744bf9-4951-4848-9b8e-fdb078b82ee2" fromAddress="${email.from}" subject='#["Message count of " ++ vars.count.destination[0] ++ " queue"]' config-ref="Email_SMTP">
+					<email:to-addresses >
+						<email:to-address value="${email.to}" />
+					</email:to-addresses>
+					<email:body contentType="text/html">
+					</email:body>
+				</email:send>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="LOG INFO" doc:id="645e6b26-9b62-42a0-89d1-0b60ddb64f8e" message="end" category="END"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
