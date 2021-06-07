@@ -1,0 +1,17 @@
+#Anypoint MQ
+anypointmq:
+  queue: ""
+  clientId: ""
+  clientSecret: ""
+  
+#JSON Logger
+jsonLogger:
+  anypointmq:
+    queue: ""
+    clientId: ""
+    clientSecret: ""
+    
+#Splunk REST call
+splunk:
+  guid: ""
+  token: ""

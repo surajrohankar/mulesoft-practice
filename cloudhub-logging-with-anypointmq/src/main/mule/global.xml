@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
+	<json-logger:config name="JSON_Logger_Config1" doc:name="JSON Logger Config" doc:id="e31ee436-8804-4a2b-bf57-7e8bcda1a07d" applicationName="mule-cloudhub-logging-with-anypointmq" applicationVersion="1.0" environment="Sandbox" >
+		<json-logger:external-destination >
+			<json-logger:amq-destination queueOrExchangeDestination="${jsonLogger.anypointmq.queue}" clientId="${jsonLogger.anypointmq.clientId}" clientSecret="${jsonLogger.anypointmq.clientSecret}" />
+		</json-logger:external-destination>
+	</json-logger:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c3138b26-0506-4b4d-91b8-5e6fd890663e" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<anypoint-mq:config name="Anypoint_MQ_Config" doc:name="Anypoint MQ Config" doc:id="cefffd71-b1fe-45ce-8b59-73fb456b772d" >
+		<anypoint-mq:connection clientId="${anypointmq.clientId}" clientSecret="${anypointmq.clientSecret}" />
+	</anypoint-mq:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="a9fc2005-478c-4c87-9123-ea3392536452" file="config.yaml" />
+</mule>

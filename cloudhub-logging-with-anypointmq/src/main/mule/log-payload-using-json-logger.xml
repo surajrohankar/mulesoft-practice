@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd">
+	<flow name="log-payloadFlow" doc:id="be1fe674-39bc-4d7f-8f3b-b96848175047" >
+		<http:listener doc:name="Listener" doc:id="60a7f7ce-5861-4bd7-bccf-8a41541c09d4" path="/anypointmq" config-ref="HTTP_Listener_config"/>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="c2878f35-c9db-4613-a749-a51ea1fbda63" />
+		<json-logger:logger doc:name="Logger" doc:id="9cb0b333-54eb-4f1b-a583-b6a014a8dcc2" message='#["message is " ++ payload]' config-ref="JSON_Logger_Config1"/>
+	
+</flow>
+	</mule>
