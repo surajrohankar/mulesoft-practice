@@ -37,6 +37,7 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 			</scheduling-strategy>
 		</scheduler>
 		<os:retrieve doc:name="Retrieve Access Token" doc:id="6ed3b60b-3642-4a75-b531-f210ab77dda0" key="token" target="accss_token" objectStore="Object_store"/>
+		<http:request method="GET" doc:name="GET Instance Id" doc:id="e005da94-6def-4230-b7d5-c2217cd28ad3" url="https://anypoint.mulesoft.com/cloudhub/api/v2/applications/${anypoint.app_name}/deployments"/>
 		<http:request method="GET" doc:name="GET Cloudhub Logs" doc:id="f2ee1c2c-693f-4289-8c3c-bc7902ecd981" url="https://anypoint.mulesoft.com/cloudhub/api/v2/applications/{app_name}/instances/{instance_id}/logs">
 			<http:headers ><![CDATA[#[output application/java
 ---

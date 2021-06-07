@@ -2,17 +2,19 @@
 anypoint:
   username: ""
   password: ""
+  
+  #refer this collection for below properties https://github.com/surajrohankar/cloudhub-logging-api-postman-collection
   envId: ""
-  appName: ""
-  instanceId: ""
+  appName: "mule-clouhub-splunk-logging"
 
 #Splunk
 #For connector configuration  
 splunk:
   baseUri: "http://localhost:8089"
-  username: ""
-  password: ""
+  username: "admin"
+  password: "admin123"
   
 #For Splunk REST call
+  #get GUID from $SPLUNK_HOME\etc\instance.cfg
   guid: ""
   token: ""
